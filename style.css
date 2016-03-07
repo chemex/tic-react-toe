@@ -1,0 +1,91 @@
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+.container {
+  width: 960px;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+
+header {
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.Board {
+  position: relative;
+  display: inline-block;
+  margin: 20px;
+}
+
+.Board-placeholder {
+  color: #999;
+  font-size: 36px;
+
+  width: 278px;
+  height: 278px;
+
+  border: 2px dashed #999;
+  border-radius: 8px;
+
+  vertical-align: top;
+  text-align: center;
+
+  cursor: pointer;
+}
+
+.Board-placeholder-plus {
+  font-size: 60px;
+  margin-top: 48px;
+}
+
+.Board-winner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  padding-top: 75px;
+
+  color: #fff;
+  background-color: #333;
+  opacity: 0.7;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 48px;
+}
+
+.Board-reset {
+  border: 2px solid #fff;
+  border-radius: 4px;
+  margin: 0 auto;
+  width: 70%;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.Cell {
+  height: 90px;
+  width: 90px;
+
+  text-align: center;
+  font-size: 36px;
+  vertical-align: middle;
+}
+
+.Cell--border-horizontal{
+  border-top: 4px solid #000;
+  border-bottom: 4px solid #000;
+}
+
+.Cell--border-vertical {
+  border-right: 4px solid #000;
+  border-left: 4px solid #000;
+}
