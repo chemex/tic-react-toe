@@ -4,23 +4,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 var TicTacToeCell = React.createClass({
-  getInitialState() {
-    return {cellChar: null};
-  },
-
-  handleClick() {
-    if(this.state.cellChar != null) return;
-    this.setState({cellChar: this.props.getCurrentPlayerChar()});
-  },
-
-  resetCell() {
-    this.setState({cellChar: null});
-  },
-
   render() {
     return (
-      <td className={this.props.className} onClick={this.handleClick}>
-        {this.state.cellChar}
+      <td className={this.props.className} onClick={this.props.cellClicked}>
+        {this.props.cellChar}
       </td>
     );
   }
@@ -30,55 +17,63 @@ var TicTacToeCell = React.createClass({
 var TicTacToeBoard = React.createClass({
 
   getInitialState() {
-    return {currentPlayer: 0, winner: null};
+    var board = [];
+    for(var i = 0; i < this.props.boardSize; i++) {
+      board.push([...Array(this.props.boardSize)].map(() => null));
+    }
+    return {board, currentPlayer: 0, winner: null};
   },
 
-  // check for wins: this is kind of gross that we save all cells as refs,
-  // but I think its a bit overkill to add something like redux for better
-  // data show for something trivial like tic-tac-toe
-  componentDidUpdate() {
+  resetToInitialState() {
+    this.setState(this.getInitialState());
+  },
 
-    if(this.state.winner) return;
+  // check for wins, iterate through all cells and add to row/col/diag
+  // array, check if all array elements are the same to win
+  componentDidUpdate() {
+    if(this.state.winner) return;  // just a safety, but unnecessary bc overlay
 
     // initialize all potential rows and columns plus two diagonals
-    var rows = []
+    var rows = [];
     for(var i = 0; i < (this.props.boardSize * 2) + 2; i++) {
-      rows.push([])
+      rows.push([]);
     }
 
     for(var i = 0; i < this.props.boardSize; i++) {
       for(var j = 0; j < this.props.boardSize; j++) {
 
-        var cellState = this.refs[`${i}${j}`].state.cellChar
+        var cellState = this.state.board[i][j];
 
-        if(cellState == null) continue;  // dont allow multiple clicks
+        if(cellState == null) continue;  // skip empty cells
 
         // add move to correct row and column array
-        rows[i].push(cellState)
-        rows[this.props.boardSize  + j].push(cellState)
+        rows[i].push(cellState);
+        rows[this.props.boardSize + j].push(cellState);
 
         // add move to first diagonal array if on top left to bottom right
         if(i == j) {
-          rows[rows.length - 2].push(cellState)
+          rows[rows.length - 2].push(cellState);
         }
 
         // add move to second diagonal array if on top right to bottom left
         if(i + j == this.props.boardSize - 1) {
-          rows[rows.length - 1].push(cellState)
+          rows[rows.length - 1].push(cellState);
         }
       }
     }
 
+    // check all rows/cols/diags for winner
     for(var row of rows) {
-      var rowSet = new Set(row)
+      var rowSet = new Set(row);
 
       if(row.length == this.props.boardSize && rowSet.size == 1) {
-        this.setState({winner: Array.from(rowSet)[0]})
+        this.setState({winner: Array.from(rowSet)[0]});
+        break;
       }
     }
   },
 
-  getCurrentPlayerChar() {
+  getAndIncrementCurrentPlayerChar() {
     var maxPlayers = this.props.playerChars.length;
     var currentPlayer = this.state.currentPlayer;
     var nextPlayer = (this.state.currentPlayer + 1) % maxPlayers;
@@ -87,10 +82,13 @@ var TicTacToeBoard = React.createClass({
     return String.fromCharCode(this.props.playerChars[currentPlayer]);
   },
 
-  resetGame() {
-    this.setState({currentPlayer: 0, winner: false});
-    for(var cellKey in this.refs) {
-      this.refs[cellKey].resetCell();
+  cellClicked(i, j) {
+    var board = this.state.board;
+    if(board[i][j]) {
+      return;  // do nothing if cell has non-null val
+    } else {
+      board[i][j] = this.getAndIncrementCurrentPlayerChar();
+      this.setState({board});
     }
   },
 
@@ -111,14 +109,11 @@ var TicTacToeBoard = React.createClass({
           classNames += ' Cell--border-vertical';
         }
 
-        var cellLocation=`${i}${j}`
-
         cells.push(
           <TicTacToeCell
-            key={`cell-${cellLocation}`}
-            ref={cellLocation}
-            position={[i, j]}
-            getCurrentPlayerChar={this.getCurrentPlayerChar}
+            key={`cell-${i}${j}`}
+            cellClicked={this.cellClicked.bind(this, i, j)}
+            cellChar={this.state.board[i][j]}
             className={classNames}
           />
         );
@@ -138,7 +133,7 @@ var TicTacToeBoard = React.createClass({
         </table>
         <div className='Board-winner' style={hideWinner}>
           {this.state.winner} Wins!
-          <div className='Board-reset' onClick={this.resetGame}>Reset</div>
+          <div className='Board-reset' onClick={this.resetToInitialState}>Reset</div>
         </div>
       </div>
     );
@@ -149,11 +144,11 @@ var TicTacToeBoard = React.createClass({
 var TicTacToeManager = React.createClass({
 
   getInitialState() {
-    return {numGames: 1}
+    return {numGames: 1};
   },
 
   handleClick() {
-    this.setState({numGames: this.state.numGames + 1})
+    this.setState({numGames: this.state.numGames + 1});
   },
 
   render() {
@@ -164,7 +159,7 @@ var TicTacToeManager = React.createClass({
         playerChars={[10005, 9711]}
         key={`game-${i}`}
       />
-    )
+    );
     return (
       <div>
         {games}
